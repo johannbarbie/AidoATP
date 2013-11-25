@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
-import com.xeiam.xchange.mtgox.v2.MtGoxExchange;
+import com.xeiam.xchange.btcchina.BTCChinaExchange;
 
 /**
 * AidoATP MtGoxExchange class.
@@ -35,12 +35,12 @@ import com.xeiam.xchange.mtgox.v2.MtGoxExchange;
 * @author Aido
 */
 
-public class ATPMtGoxExchange extends MtGoxExchange {
+public class ATPBTCChinaExchange extends BTCChinaExchange {
 
-	private static final String EXCHANGENAME = "MtGox";
+	private static final String EXCHANGENAME = "BTCChina";
 	private static final String TICKERMANAGERCLASS = PollingTickerManager.class.getName();
 	private static Exchange instance = null;
-	private static Logger log = LoggerFactory.getLogger(ATPMtGoxExchange.class);
+	private static Logger log = LoggerFactory.getLogger(ATPBTCChinaExchange.class);
 
 	public static Exchange getInstance() {
 		if(instance == null) {
@@ -56,7 +56,7 @@ public class ATPMtGoxExchange extends MtGoxExchange {
 		log.debug("{} API Key: {}",EXCHANGENAME,apiKey);
 		log.debug("{} Secret Key: {}",EXCHANGENAME,secretKey);
 		
-		Exchange exchange = ExchangeFactory.INSTANCE.createExchange(MtGoxExchange.class.getName());
+		Exchange exchange = ExchangeFactory.INSTANCE.createExchange(BTCChinaExchange.class.getName());
 		
 		ExchangeSpecification exchangeSpecification = exchange.getDefaultExchangeSpecification();
 		exchangeSpecification.setApiKey(apiKey);

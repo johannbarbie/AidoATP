@@ -19,15 +19,16 @@
 package org.aido.atp;
 
 import java.util.HashMap;
-import java.lang.reflect.Constructor;
+
+import org.aido.atp.exchanges.ATPBTCChinaExchange;
+import org.aido.atp.exchanges.ATPBTCeExchange;
+import org.aido.atp.exchanges.ATPBitstampExchange;
+import org.aido.atp.exchanges.ATPCampBXExchange;
+import org.aido.atp.exchanges.ATPMtGoxExchange;
+import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeSpecification;
-
-import org.joda.money.CurrencyUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
 * Exchange manager class.
@@ -37,16 +38,21 @@ import org.slf4j.LoggerFactory;
 
 public class ExchangeManager implements Runnable {
 
-	private static final HashMap<String, String> exchangesHashMap = new HashMap<String, String>(){{
+	private static final HashMap<String, String> exchangesHashMap = new HashMap<String, String>(){/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7704259029939960219L;
+
+	{
 		put(ATPMtGoxExchange.getExchangeName(), ATPMtGoxExchange.class.getName());
 		put(ATPBTCeExchange.getExchangeName(), ATPBTCeExchange.class.getName());
 		put(ATPBitstampExchange.getExchangeName(), ATPBitstampExchange.class.getName());
 //		put(ATPBitcoinCentralExchange.getExchangeName(), ATPBitcoinCentralExchange.class.getName());
-		put(ATPCampBXExchange.getExchangeName(), ATPCampBXExchange.class.getName());}};
+		put(ATPCampBXExchange.getExchangeName(), ATPCampBXExchange.class.getName());
+		put(ATPBTCChinaExchange.getExchangeName(), ATPBTCChinaExchange.class.getName());}};
 	private static HashMap<String, ExchangeManager> instances = new HashMap<String, ExchangeManager>();
 	private HashMap<CurrencyUnit, Double> asksInARow;
 	private HashMap<CurrencyUnit, Double> bidsInARow;
-	private static Logger log;
 	private Exchange exchange;
 	private ExchangeSpecification exchangeSpecification;
 	private String exchangeName;
@@ -60,7 +66,6 @@ public class ExchangeManager implements Runnable {
 
 	private ExchangeManager(String exchangeName){
 		this.exchangeName = exchangeName;
-		log = LoggerFactory.getLogger(ExchangeManager.class);
 		asksInARow = new HashMap<CurrencyUnit, Double>();
 		bidsInARow = new HashMap<CurrencyUnit, Double>();
 	}

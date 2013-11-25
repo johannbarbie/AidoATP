@@ -107,6 +107,10 @@
 			<artifactId>xchange-campbx</artifactId>
 		</dependency>
 		<dependency>
+				<groupId>com.xeiam.xchange</groupId>
+				<artifactId>xchange-btcchina</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 		</dependency>
@@ -120,22 +124,22 @@
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-core</artifactId>
-				<version>1.7.0</version>
+				<version>1.10.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-mtgox</artifactId>
-				<version>1.7.0</version>
+				<version>1.10.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-btce</artifactId>
-				<version>1.7.0</version>
+				<version>1.10.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-bitstamp</artifactId>
-				<version>1.7.0</version>
+				<version>1.10.0</version>
 			</dependency>
 <!--			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
@@ -145,7 +149,12 @@
 			<dependency>
 				<groupId>com.xeiam.xchange</groupId>
 				<artifactId>xchange-campbx</artifactId>
-				<version>1.7.0</version>
+				<version>1.10.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.xeiam.xchange</groupId>
+				<artifactId>xchange-btcchina</artifactId>
+				<version>1.10.0</version>
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>

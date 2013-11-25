@@ -16,12 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Aido ATP.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.aido.atp;
+package org.aido.atp.polling;
 
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
+import org.aido.atp.Application;
+import org.aido.atp.ExchangeManager;
+import org.aido.atp.TickerManager;
 import org.joda.money.CurrencyUnit;
 
 import com.xeiam.xchange.currency.Currencies;
@@ -55,7 +57,7 @@ public class PollingTickerManager extends TickerManager {
 		try {
 			checkTick(marketData.getTicker(Currencies.BTC, currency.getCurrencyCode()));
 			TimeUnit.SECONDS.sleep(Integer.parseInt(Application.getInstance().getConfig("PollingInterval")));
-		} catch (com.xeiam.xchange.ExchangeException | si.mazi.rescu.HttpException e) {
+		} catch (com.xeiam.xchange.ExchangeException e) {
 			Socket testSock = null;
 			while (true) {
 				try {

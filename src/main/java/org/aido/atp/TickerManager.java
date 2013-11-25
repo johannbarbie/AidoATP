@@ -23,18 +23,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.joda.money.CurrencyUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xeiam.xchange.dto.marketdata.Ticker;
 import com.xeiam.xchange.utils.DateUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
 * Ticker Manager class.

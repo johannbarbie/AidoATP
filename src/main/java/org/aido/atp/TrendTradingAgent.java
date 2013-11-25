@@ -18,27 +18,27 @@
  */
 package org.aido.atp;
 
-import java.text.NumberFormat;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
+import java.text.NumberFormat;
 import java.util.Arrays;
-import java.net.Socket;
-
-import org.joda.money.BigMoney;
-import org.joda.money.CurrencyUnit;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.codehaus.janino.ExpressionEvaluator;
+import org.joda.money.BigMoney;
+import org.joda.money.CurrencyUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.xeiam.xchange.ExchangeException;
+import com.xeiam.xchange.NotAvailableFromExchangeException;
+import com.xeiam.xchange.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.service.polling.PollingTradeService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
 * Trend Trading Agent class.
@@ -66,8 +66,6 @@ public class TrendTradingAgent implements Runnable {
 	private BigMoney minLocal;
 	private CurrencyUnit localCurrency;
 	private Logger log;
-	private boolean evalAsk;
-	private boolean evalBid;
 	private String exchangeName;
 
 	public TrendTradingAgent(TrendObserver observer, String exchangeName) {
@@ -97,8 +95,6 @@ public class TrendTradingAgent implements Runnable {
 		String askLogic = Application.getInstance().getConfig("AskLogic");
 		String bidLogic = Application.getInstance().getConfig("BidLogic");
 
-		evalAsk = false;
-		evalBid = false;
 
 		tradeIndicator = new HashMap<String, Boolean>();
 		tradeIndicator.put("ADS_Up",false);
@@ -564,12 +560,21 @@ public class TrendTradingAgent implements Runnable {
 
 		numberFormat.setMaximumFractionDigits(8);
 
-		if(!Application.getInstance().getSimMode()){
-			String marketOrderReturnValue = tradeService.placeMarketOrder(order);
-			log.info("{} Market Order return value: {}",exchangeName,marketOrderReturnValue);
-			success=(marketOrderReturnValue != null) ? true:false;
-		}else{
-			log.info("You were in simulation mode, the {} trade below did NOT actually occur.",exchangeName);
+		try {
+			if(!Application.getInstance().getSimMode()){
+				String marketOrderReturnValue;
+				marketOrderReturnValue = tradeService.placeMarketOrder(order);	
+				log.info("{} Market Order return value: {}",exchangeName,marketOrderReturnValue);
+				success=(marketOrderReturnValue != null) ? true:false;
+			}else{
+				log.info("You were in simulation mode, the {} trade below did NOT actually occur.",exchangeName);
+			}
+		} catch (ExchangeException | NotAvailableFromExchangeException
+				| NotYetImplementedForExchangeException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			log.error(e.getMessage());
+			return;
 		}
 
 		String action,failAction;

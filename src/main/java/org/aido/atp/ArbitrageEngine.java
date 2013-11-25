@@ -18,22 +18,21 @@
  */
 package org.aido.atp;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.net.Socket;
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
-import java.math.RoundingMode;
-import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.net.Socket;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xeiam.xchange.dto.Order.OrderType;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.service.polling.PollingTradeService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
 * Arbitrage engine class.
@@ -45,9 +44,7 @@ public class ArbitrageEngine implements Runnable {
 	
 	private static HashMap<String, ArbitrageEngine> instances  = new HashMap<String, ArbitrageEngine>();
 	private CurrencyUnit baseCurrency;
-	private double factor;
 	private Logger log;
-	private boolean quit;
 	private boolean disableTrendTradeFlag;
 	private HashMap<CurrencyUnit, ATPTicker> lastTickMap;
 	private String exchangeName;
@@ -62,7 +59,6 @@ public class ArbitrageEngine implements Runnable {
 	private ArbitrageEngine(String exchangeName) {
 		this.exchangeName = exchangeName;
 		log = LoggerFactory.getLogger(ArbitrageEngine.class);
-		quit = false;
 		disableTrendTradeFlag = false;
 		lastTickMap = new HashMap<CurrencyUnit, ATPTicker>();
 		baseCurrency = CurrencyUnit.getInstance(Application.getInstance().getConfig("LocalCurrency"));
@@ -116,11 +112,10 @@ public class ArbitrageEngine implements Runnable {
 				}else {
 					log.info("Arbitrage Engine cannot find a profitable opportunity on "+exchangeName+" at this time.");
 				}
-			} catch (com.xeiam.xchange.ExchangeException | si.mazi.rescu.HttpException e) {
-				Socket testSock = null;
+			} catch (com.xeiam.xchange.ExchangeException e) {
 				try {
 					log.warn("WARNING: Testing connection to "+exchangeName+" exchange");
-					testSock = new Socket(ExchangeManager.getInstance(exchangeName).getHost(),ExchangeManager.getInstance(exchangeName).getPort());
+					new Socket(ExchangeManager.getInstance(exchangeName).getHost(),ExchangeManager.getInstance(exchangeName).getPort());
 				}
 				catch (java.io.IOException e1) {
 					try {
@@ -170,34 +165,38 @@ public class ArbitrageEngine implements Runnable {
 			log.debug(exchangeName+" Arbitrage sell order is sell "+qtyToBTC.toString()+" for "+qtyTo.toString());
 			
 			String marketbuyOrderReturnValue;
-			if(!Application.getInstance().getSimMode()){
-				marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
-				log.info(exchangeName+" Market Buy Order return value: " + marketbuyOrderReturnValue);
-			}else{
-				log.info("You were in simulation mode, the trade below did NOT actually occur.");
-				marketbuyOrderReturnValue = "Simulation mode";
-			}
-			
-			String marketsellOrderReturnValue;
-			if (marketbuyOrderReturnValue != null && !marketbuyOrderReturnValue.isEmpty()){
-				log.info("Arbitrage sold "+qtyFrom.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyFromBTC.withScale(8,RoundingMode.HALF_EVEN).toString()+" on "+exchangeName);				
+			try{
 				if(!Application.getInstance().getSimMode()){
-					marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
-					log.info(exchangeName+" Market Sell Order return value: " + marketsellOrderReturnValue);
+					marketbuyOrderReturnValue = tradeService.placeMarketOrder(buyOrder);
+					log.info(exchangeName+" Market Buy Order return value: " + marketbuyOrderReturnValue);
 				}else{
 					log.info("You were in simulation mode, the trade below did NOT actually occur.");
-					marketsellOrderReturnValue = "Simulation mode";
-				}				
-				if (marketsellOrderReturnValue != null && !marketsellOrderReturnValue.isEmpty()){
-					log.info("Arbitrage bought "+qtyTo.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyToBTC.withScale(8,RoundingMode.HALF_EVEN).toString()+" on "+exchangeName);
-					log.info("Arbitrage successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString()+" on "+exchangeName);
-					log.info(AccountManager.getInstance(exchangeName).getAccountInfo().toString());	
-					ProfitLossAgent.getInstance().calcProfitLoss();		
-				} else {
-					log.error("ERROR: Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString()+" on "+exchangeName);
+					marketbuyOrderReturnValue = "Simulation mode";
 				}
-			} else {
-				log.error("ERROR: Buy failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString()+" on "+exchangeName);
+				String marketsellOrderReturnValue;
+				if (marketbuyOrderReturnValue != null && !marketbuyOrderReturnValue.isEmpty()){
+					log.info("Arbitrage sold "+qtyFrom.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyFromBTC.withScale(8,RoundingMode.HALF_EVEN).toString()+" on "+exchangeName);				
+					if(!Application.getInstance().getSimMode()){
+						marketsellOrderReturnValue = tradeService.placeMarketOrder(sellOrder);
+						log.info(exchangeName+" Market Sell Order return value: " + marketsellOrderReturnValue);
+					}else{
+						log.info("You were in simulation mode, the trade below did NOT actually occur.");
+						marketsellOrderReturnValue = "Simulation mode";
+					}				
+					if (marketsellOrderReturnValue != null && !marketsellOrderReturnValue.isEmpty()){
+						log.info("Arbitrage bought "+qtyTo.withScale(8,RoundingMode.HALF_EVEN).toString() +" for "+ qtyToBTC.withScale(8,RoundingMode.HALF_EVEN).toString()+" on "+exchangeName);
+						log.info("Arbitrage successfully traded "+qtyFrom.toString()+" for "+qtyTo.toString()+" on "+exchangeName);
+						log.info(AccountManager.getInstance(exchangeName).getAccountInfo().toString());	
+						ProfitLossAgent.getInstance().calcProfitLoss();		
+					} else {
+						log.error("ERROR: Sell failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString()+" on "+exchangeName);
+					}
+				} else {
+					log.error("ERROR: Buy failed. Arbitrage could not trade "+qtyFrom.toString()+" with "+qtyTo.toString()+" on "+exchangeName);
+				}
+			}catch(Exception e){
+				log.error(e.getMessage());
+				return;
 			}
 		} else {
 			log.info("Arbitrage could not trade with a balance of "+qtyFrom.toString()+" on "+exchangeName);

@@ -18,23 +18,24 @@
  */
 package org.aido.atp;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.net.Socket;
 
 import org.joda.money.BigMoney;
 import org.joda.money.CurrencyUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.xeiam.xchange.ExchangeException;
+import com.xeiam.xchange.NotAvailableFromExchangeException;
+import com.xeiam.xchange.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.dto.account.AccountInfo;
 import com.xeiam.xchange.dto.trade.Wallet;
 import com.xeiam.xchange.service.polling.PollingAccountService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
 * Account manager class.
@@ -72,7 +73,7 @@ public class AccountManager implements Runnable {
 			log.info("{} AccountInfo as String: {}",exchangeName,accountInfo.toString());
 			refreshAccounts();
 			startTickers();
-		} catch (com.xeiam.xchange.ExchangeException | si.mazi.rescu.HttpException e) {
+		} catch (com.xeiam.xchange.ExchangeException e) {
 			Socket testSock = null;
 			while (true) {
 				try {
@@ -118,9 +119,15 @@ public class AccountManager implements Runnable {
 	}
 
 	public synchronized void refreshAccounts() {
-		accountInfo = accountService.getAccountInfo();
-		updateBooks();
-		ProfitLossAgent.getInstance().updateBalances(accountInfo.getWallets());
+		try {
+			accountInfo = accountService.getAccountInfo();
+			updateBooks();
+			ProfitLossAgent.getInstance().updateBalances(accountInfo.getWallets());
+		} catch (ExchangeException | NotAvailableFromExchangeException
+				| NotYetImplementedForExchangeException | IOException e) {
+			e.printStackTrace();
+			log.error(e.getMessage());
+		}
 	}
 
 	private void updateBooks() {

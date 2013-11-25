@@ -20,11 +20,11 @@ package org.aido.atp;
 
 import java.io.Console;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.InputStream;
-import java.util.List;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -150,12 +150,10 @@ public class Application {
 		InputStream disclaimer = this.getClass().getClassLoader().getResourceAsStream("disclaimer.txt");
 
 		byte[] buf = new byte[2048];
-		long total = 0;
 		int len = 0;
 		try {
 			while (-1 != (len = disclaimer.read(buf))) {
 				System.out.write(buf, 0, len);
-				total += len;
 			}
 		} catch (IOException e) {
 			throw new RuntimeException("Error displaying disclaimer", e);

@@ -16,15 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Aido ATP.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.aido.atp;
+package org.aido.atp.exchanges;
+
+import org.aido.atp.Application;
+import org.aido.atp.ExchangeManager;
+import org.aido.atp.polling.PollingTickerManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xeiam.xchange.Exchange;
 import com.xeiam.xchange.ExchangeFactory;
 import com.xeiam.xchange.ExchangeSpecification;
 import com.xeiam.xchange.bitstamp.BitstampExchange;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
 * AidoATP Bitstamp class.
