@@ -48,6 +48,25 @@ public class ATPBTCChinaExchange extends BTCChinaExchange {
 		}
 		return instance;
 	}
+	
+	public static Exchange newInstance(String apiKey, String secretKey) {
+		log.debug("{} API Key: {}",EXCHANGENAME,apiKey);
+		log.debug("{} Secret Key: {}",EXCHANGENAME,secretKey);
+		
+		Exchange exchange = ExchangeFactory.INSTANCE.createExchange(BTCChinaExchange.class.getName());
+		
+		ExchangeSpecification exchangeSpecification = exchange.getDefaultExchangeSpecification();
+		exchangeSpecification.setApiKey(apiKey);
+		exchangeSpecification.setSecretKey(secretKey);
+		exchange.applySpecification(exchangeSpecification);
+		
+		ExchangeManager.getInstance(EXCHANGENAME).setExchangeSpecification(exchangeSpecification);
+		ExchangeManager.getInstance(EXCHANGENAME).setTickerManagerClass(TICKERMANAGERCLASS);
+		
+		log.info("Connecting to {} Exchange",EXCHANGENAME);
+			
+		return exchange;
+	}
 
 	public static Exchange newInstance() {	
 		String apiKey = Application.getInstance().getConfig(EXCHANGENAME + "ApiKey");

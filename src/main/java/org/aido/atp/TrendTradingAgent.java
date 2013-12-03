@@ -37,6 +37,7 @@ import com.xeiam.xchange.ExchangeException;
 import com.xeiam.xchange.NotAvailableFromExchangeException;
 import com.xeiam.xchange.NotYetImplementedForExchangeException;
 import com.xeiam.xchange.dto.Order.OrderType;
+import com.xeiam.xchange.dto.trade.LimitOrder;
 import com.xeiam.xchange.dto.trade.MarketOrder;
 import com.xeiam.xchange.service.polling.PollingTradeService;
 
@@ -431,8 +432,9 @@ public class TrendTradingAgent implements Runnable {
 							log.info("Trend following trades disabled by Arbitrage Engine.");
 						}
 					} else {
-						log.info(exchangeName + "Trend following trade agent is attempting to sell {} of {} available",qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString(),balanceBTC.toString());
-						marketOrder(qtyToSell.getAmount(),OrderType.ASK);
+						BigMoney limitPrice = lastTick.getAsk().multipliedBy(0.95);
+						log.info(exchangeName + "Trend following trade agent is attempting to sell {} of {} available",qtyToSell.withScale(8,RoundingMode.HALF_EVEN).toString(),balanceBTC.toString()+"for "+limitPrice);
+						limitOrder(qtyToSell.getAmount(),OrderType.ASK, limitPrice);
 					}
 				} else {
 					log.info(exchangeName + "BTC balance is empty. No further selling is possible until the market corrects or funds are added to your account.");
@@ -538,8 +540,9 @@ public class TrendTradingAgent implements Runnable {
 							log.info("{} was less than the configured limit of {}",qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString(),minBTC.toString());
 							log.info("{} Trend following trade agent has decided that there is not enough {} momentum to trade at this time.",exchangeName,localCurrency.getCode());
 						} else {
-							log.info(exchangeName + " Trend following trade agent is attempting to buy {} at current {} market price.",qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString(),localCurrency.getCurrencyCode());
-							marketOrder(qtyBTCToBuy.getAmount(),OrderType.BID);
+							BigMoney limitPrice = lastTick.getAsk().multipliedBy(1.05);
+							log.info(exchangeName + " Trend following trade agent is attempting to buy {} at current {} market price of "+limitPrice+".",qtyBTCToBuy.withScale(8,RoundingMode.HALF_EVEN).toString(),localCurrency.getCurrencyCode());
+							limitOrder(qtyBTCToBuy.getAmount(),OrderType.BID,limitPrice);
 						}
 					}
 				} else {
@@ -549,6 +552,58 @@ public class TrendTradingAgent implements Runnable {
 		} catch (WalletNotFoundException e) {
 			log.error("ERROR: Could not find wallet for {}",localCurrency.getCurrencyCode());
 			System.exit(1);
+		}
+		return;
+	}
+	
+	private void limitOrder(BigDecimal qty, OrderType orderType, BigMoney limitPrice) {
+		LimitOrder order = new LimitOrder(orderType,qty,"BTC",localCurrency.getCurrencyCode(),"",null,limitPrice);
+		boolean success = true;
+		NumberFormat numberFormat = NumberFormat.getNumberInstance();
+
+		numberFormat.setMaximumFractionDigits(8);
+
+		try {
+			if(!Application.getInstance().getSimMode()){
+				String marketOrderReturnValue;
+				marketOrderReturnValue = tradeService.placeLimitOrder(order);	
+				log.info("{} Market Order return value: {}",exchangeName,marketOrderReturnValue);
+				success=(marketOrderReturnValue != null) ? true:false;
+			}else{
+				log.info("You were in simulation mode, the {} trade below did NOT actually occur.",exchangeName);
+			}
+		} catch (ExchangeException | NotAvailableFromExchangeException
+				| NotYetImplementedForExchangeException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			log.error(e.getMessage());
+			return;
+		}
+
+		String action,failAction;
+		if(orderType.equals(OrderType.ASK)) {
+			action = " sold ";
+			failAction = " sell ";
+			asksInARow.put(localCurrency,asksInARow.get(localCurrency) + 1);
+			bidsInARow.put(localCurrency,new Double(0));
+		}else {
+			action = " bought ";
+			failAction = " buy ";
+			bidsInARow.put(localCurrency,bidsInARow.get(localCurrency) + 1);
+			asksInARow.put(localCurrency,new Double(0));
+		}
+		ExchangeManager.getInstance(exchangeName).setAsksInARow(asksInARow);
+		ExchangeManager.getInstance(exchangeName).setBidsInARow(bidsInARow);
+
+		log.debug(exchangeName + " {} Asks in a row : {}",localCurrency.getCode(),asksInARow.get(localCurrency).toString());
+		log.debug(exchangeName + " {} Bids in a row : {}",localCurrency.getCode(),bidsInARow.get(localCurrency).toString());
+
+		if(success){
+			log.info("Successfully"+action+numberFormat.format(qty)+" BTC at current " + exchangeName + " "+localCurrency.getCurrencyCode()+" market price.");
+			log.info(AccountManager.getInstance(exchangeName).getAccountInfo().toString());
+			ProfitLossAgent.getInstance().calcProfitLoss();
+		}else{
+			log.error("ERROR: Failed to"+failAction+numberFormat.format(qty)+" BTC at current " + exchangeName + " "+localCurrency.getCurrencyCode()+" market price. Please investigate");
 		}
 		return;
 	}

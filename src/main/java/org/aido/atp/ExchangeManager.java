@@ -21,7 +21,6 @@ package org.aido.atp;
 import java.util.HashMap;
 
 import org.aido.atp.exchanges.ATPBTCChinaExchange;
-import org.aido.atp.exchanges.ATPBTCeExchange;
 import org.aido.atp.exchanges.ATPBitstampExchange;
 import org.aido.atp.exchanges.ATPCampBXExchange;
 import org.aido.atp.exchanges.ATPMtGoxExchange;
@@ -45,7 +44,6 @@ public class ExchangeManager implements Runnable {
 
 	{
 		put(ATPMtGoxExchange.getExchangeName(), ATPMtGoxExchange.class.getName());
-		put(ATPBTCeExchange.getExchangeName(), ATPBTCeExchange.class.getName());
 		put(ATPBitstampExchange.getExchangeName(), ATPBitstampExchange.class.getName());
 //		put(ATPBitcoinCentralExchange.getExchangeName(), ATPBitcoinCentralExchange.class.getName());
 		put(ATPCampBXExchange.getExchangeName(), ATPCampBXExchange.class.getName());

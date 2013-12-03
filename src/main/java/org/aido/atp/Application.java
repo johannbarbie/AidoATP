@@ -93,7 +93,7 @@ public class Application {
 			}
 		}
 
-		if(config.get("MtGoxApiKey", null) == null && config.get("BTC-eApiKey", null) == null && config.get("BitstampUserName", null) == null) {
+		if(config.get("MtGoxApiKey", null) == null && config.get("BTCChinaApiKey", null) == null && config.get("BTC-eApiKey", null) == null && config.get("BitstampUserName", null) == null) {
 			interview();
 		}
 
